@@ -12,6 +12,7 @@ from src.tools.base import ToolRegistry
 from src.utils.context import ContextManager
 from src.utils.snapshots import SnapshotManager
 from src.config import Config
+from src.tools.file_ops import WriteFileTool, ReadFileTool
 
 
 class CodingAgent:
@@ -36,6 +37,7 @@ class CodingAgent:
         # Initialize components
         self.llm = ClaudeProvider(config)
         self.tools = ToolRegistry(config, self.working_directory)
+        self._register_tools()
         self.context = ContextManager(config)
         self.snapshots = SnapshotManager(self.working_directory)
         
@@ -43,6 +45,10 @@ class CodingAgent:
         self.conversation_history: List[Dict[str, Any]] = []
         self.iteration_count = 0
         
+    def _register_tools(self):
+        self.tools.register(WriteFileTool())
+        self.tools.register(ReadFileTool())
+
     async def process_message(self, user_input: str) -> str:
         """
         Main entry point for processing user messages.
