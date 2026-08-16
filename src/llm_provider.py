@@ -59,14 +59,14 @@ class ClaudeProvider:
         """
         try:
             # Prepare tool schemas if provided
-            tool_params = []
-            if tools:
-                for tool in tools:
-                    tool_params.append(anthropic.ToolParam(
-                        name=tool["name"],
-                        description=tool["description"],
-                        input_schema=tool["input_schema"]
-                    ))
+            tool_params = tools if tools else []
+            # if tools:
+            #     for tool in tools:
+            #         tool_params.append(anthropic.ToolParam(
+            #             name=tool["name"],
+            #             description=tool["description"],
+            #             input_schema=tool["input_schema"]
+            #         ))
             
             # Make API call
             response = self.client.messages.create(
@@ -81,14 +81,14 @@ class ClaudeProvider:
             
             return response.content, None
             
-        except anthropic.APIError as e:
-            return None, f"API Error: {str(e)}"
-        except anthropic.APIConnectionError as e:
-            return None, f"Connection Error: {str(e)}"
-        except anthropic.RateLimitError as e:
-            return None, f"Rate Limit Error: {str(e)}"
         except anthropic.APITimeoutError as e:
             return None, f"Timeout Error: {str(e)}"
+        except anthropic.RateLimitError as e:
+            return None, f"Rate Limit Error: {str(e)}"
+        except anthropic.APIConnectionError as e:
+            return None, f"Connection Error: {str(e)}"
+        except anthropic.APIError as e:
+            return None, f"API Error: {str(e)}"
         except Exception as e:
             return None, f"Unexpected error: {str(e)}"
     

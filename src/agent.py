@@ -95,7 +95,9 @@ class CodingAgent:
             self.iteration_count += 1
             
             # === REASON: Get LLM's response ===
-            content_blocks, error = await self.llm.call(messages)
+            content_blocks, error = await self.llm.call(
+                messages, tools=self.tools.get_schemas()
+                )
             
             if error:
                 return f"Error: {error}"
