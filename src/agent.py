@@ -13,6 +13,7 @@ from src.utils.context import ContextManager
 from src.utils.snapshots import SnapshotManager
 from src.config import Config
 from src.tools.file_ops import WriteFileTool, ReadFileTool
+from src.tools.code_exec import CodeExecutionTool
 
 
 class CodingAgent:
@@ -48,6 +49,7 @@ class CodingAgent:
     def _register_tools(self):
         self.tools.register(WriteFileTool())
         self.tools.register(ReadFileTool())
+        self.tools.register(CodeExecutionTool())
 
     async def process_message(self, user_input: str) -> str:
         """
