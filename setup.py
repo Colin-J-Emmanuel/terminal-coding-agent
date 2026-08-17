@@ -12,7 +12,7 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "coding-agent=src.cli:main", # activates once cli.py defines main()
+            "coding-agent=src.cli:run", # activates once cli.py defines run()
         ],
     },
 )
