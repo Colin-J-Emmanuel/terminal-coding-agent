@@ -14,6 +14,7 @@ from src.utils.snapshots import SnapshotManager
 from src.config import Config
 from src.tools.file_ops import WriteFileTool, ReadFileTool
 from src.tools.code_exec import CodeExecutionTool
+from src.tools.search import SearchTool
 
 
 class CodingAgent:
@@ -50,6 +51,7 @@ class CodingAgent:
         self.tools.register(WriteFileTool())
         self.tools.register(ReadFileTool())
         self.tools.register(CodeExecutionTool())
+        self.tools.register(SearchTool(self.working_directory))
 
     async def process_message(self, user_input: str) -> str:
         """
