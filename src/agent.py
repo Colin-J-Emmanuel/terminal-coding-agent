@@ -91,8 +91,10 @@ class CodingAgent:
         4. Repeat until task complete or max iterations reached
         """
         
-        # Build initial message list
-        messages = self.build_messages_list(user_input=user_input)
+        # Build initial message list. The user turn is already in
+        # conversation_history (added in process_message), so the history walk
+        # includes it — passing user_input here too would duplicate it.
+        messages = self.build_messages_list()
         
         # Track last complete response
         last_response = None
@@ -126,11 +128,21 @@ class CodingAgent:
             # === ACT: Execute the requested tools ===
             tool_results = await self._execute_tools(tool_calls)
             
-            # === OBSERVE: Build next message with tool results ===
-            messages = self.build_messages_list(
-                assistant_content=content_blocks,
-                tool_results=tool_results
-            )
+             # === OBSERVE: append this turn to the SAME growing conversation ===
+            # 1. the assistant turn that made the tool calls
+            messages.append({"role": "assistant", "content": content_blocks})
+            # 2. the tool results as a user turn, each matched to its tool_use id
+            messages.append({
+                "role": "user",
+                "content": [
+                    {
+                        "type": "tool_result",
+                        "tool_use_id": tr["tool_use_id"],
+                        "content": tr["content"],
+                    }
+                    for tr in tool_results
+                ],
+            })
         
         # Prepare final response
         if not last_response:
