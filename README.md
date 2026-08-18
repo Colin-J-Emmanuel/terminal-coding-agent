@@ -137,10 +137,6 @@ rather than hidden:
   **refused by macOS** (`ValueError: current limit exceeds maximum limit`), so on
   macOS the memory cap is silently skipped — the timeout and CPU cap still apply.
   This was found by testing per-platform, not assumed.
-- **Confirmation prompt is not enforced yet.** The agent has a
-  `require_confirmation_for` config and a confirmation hook, but the hook
-  currently auto-approves (`_get_user_confirmation` returns `True`). Destructive
-  operations are snapshotted but not yet interactively gated.
 - **No path sandboxing.** Tools operate within the working directory by
   convention but do not hard-enforce a filesystem boundary.
 - **Eager provider construction.** The agent builds its LLM provider in
@@ -195,10 +191,10 @@ Built so far:
 - [x] Sandboxed code execution with AST validation and resource limits
 - [x] Snapshots and rollback
 - [x] Test suite with a mocked LLM
+- [x] Enforced confirmation prompts for destructive operations (default-deny)
 
 Actively working toward:
 
-- [ ] Enforced confirmation prompts for destructive operations
 - [ ] Git integration (status / diff / commit as agent tools)
 - [ ] Advanced context management for large codebases
 - [ ] Multi-file refactoring
