@@ -316,18 +316,26 @@ class CodingAgent:
         return tool_name in confirmation_tools
     
     def _is_destructive(self, tool_name: str) -> bool:
-        """Check if tool is destructive (modifies files)."""
+        """Check if a tool modifies the filesystem (needs a snapshot first)."""
         destructive_tools = ["write_file", "execute_code"]
         return tool_name in destructive_tools
     
     async def _get_user_confirmation(self, tool_name: str, tool_input: Dict) -> bool:
         """
-        Get user confirmation for destructive operations.
-        
-        TODO: This will be implemented by the CLI layer
-        For now, return True to allow operations
+        Ask the user to confirm a destructive operation.
+
+        Default-deny: only an explicit 'y'/'yes' proceeds. Empty input or
+        anything ambiguous blocks the operation.
         """
-        return True
+        print(f"\n⚠️  The agent wants to run: {tool_name}")
+        for key, value in tool_input.items():
+            preview = str(value)
+            if len(preview) > 200:
+                preview = preview[:200] + "…"
+            print(f"    {key}: {preview}")
+
+        answer = input("Allow this operation? [y/N] ").strip().lower()
+        return answer in ("y", "yes")
     
     def clear_history(self):
         """Clear conversation history."""
