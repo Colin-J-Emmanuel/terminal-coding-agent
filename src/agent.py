@@ -15,6 +15,7 @@ from src.config import Config
 from src.tools.file_ops import WriteFileTool, ReadFileTool
 from src.tools.code_exec import CodeExecutionTool
 from src.tools.search import SearchTool
+from src.tools.git_ops import GitStatusTool, GitDiffTool, GitCommitTool
 
 
 class CodingAgent:
@@ -52,6 +53,9 @@ class CodingAgent:
         self.tools.register(ReadFileTool())
         self.tools.register(CodeExecutionTool())
         self.tools.register(SearchTool(self.working_directory))
+        self.tools.register(GitStatusTool(self.working_directory))
+        self.tools.register(GitDiffTool(self.working_directory))
+        self.tools.register(GitCommitTool(self.working_directory))
 
     async def process_message(self, user_input: str) -> str:
         """
@@ -317,7 +321,7 @@ class CodingAgent:
     
     def _is_destructive(self, tool_name: str) -> bool:
         """Check if a tool modifies the filesystem (needs a snapshot first)."""
-        destructive_tools = ["write_file", "execute_code"]
+        destructive_tools = ["write_file", "execute_code", "git_commit"]
         return tool_name in destructive_tools
     
     async def _get_user_confirmation(self, tool_name: str, tool_input: Dict) -> bool:
