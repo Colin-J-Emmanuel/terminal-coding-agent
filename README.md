@@ -19,6 +19,7 @@ around the ReAct (Reason–Act–Observe) loop and talks to Anthropic's Claude A
 - **ReAct loop** — the agent reasons, calls a tool, observes the result, and repeats until the task is done.
 - **File tools** — create/overwrite files (`write_file`) and read them back (`read_file`).
 - **Code search** — grep-style content search across the working directory (`search_code`).
+- **Git tools** — read repo status and diffs, and stage-and-commit with a message (`git_status`, `git_diff`, `git_commit`); commits require confirmation.
 - **Sandboxed code execution** — runs Python in an isolated subprocess with a timeout and, where the OS allows, CPU/memory caps (`execute_code`), gated by a static validator that runs first.
 - **Snapshots** — file snapshots are taken before destructive operations, with rollback via a CLI command.
 
@@ -192,10 +193,10 @@ Built so far:
 - [x] Snapshots and rollback
 - [x] Test suite with a mocked LLM
 - [x] Enforced confirmation prompts for destructive operations (default-deny)
+- [x] Git integration (status / diff / commit as agent tools)
 
 Actively working toward:
 
-- [ ] Git integration (status / diff / commit as agent tools)
 - [ ] Advanced context management for large codebases
 - [ ] Multi-file refactoring
 
