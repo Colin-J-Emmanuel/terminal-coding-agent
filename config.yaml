@@ -1,11 +1,15 @@
 llm:
-  model: claude-sonnet-4-5
+  model: claude-sonnet-5
   max_tokens: 4000
   temperature: 0.7
   timeout: 60
 
 safety:
   max_iterations: 20
+
+context:
+  summary_threshold: 20
+  keep_recent: 6
 
 cli:
   require_confirmation_for:

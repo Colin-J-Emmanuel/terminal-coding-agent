@@ -17,6 +17,12 @@ from src.tools.code_exec import CodeExecutionTool
 from src.tools.search import SearchTool
 from src.tools.git_ops import GitStatusTool, GitDiffTool, GitCommitTool
 
+SUMMARY_PROMPT = (
+    "Summarize the following conversation history concisely. Preserve: files "
+    "created or modified, key decisions, and what the user is trying to "
+    "accomplish. Write it as a brief context note, not a play-by-play.\n\n"
+    "Conversation:\n{transcript}"
+)
 
 class CodingAgent:
     """
@@ -36,6 +42,10 @@ class CodingAgent:
     ):
         self.config = config
         self.working_directory = Path(working_directory).resolve()
+
+        # Context-management settings
+        self.summary_threshold = config.get("context.summary_threshold", 20)
+        self.keep_recent = config.get("context.keep_recent", 6)
         
         # Initialize components
         self.llm = ClaudeProvider(config)
@@ -76,6 +86,11 @@ class CodingAgent:
             
             # Add assistant response to history
             self.add_message("assistant", response)
+
+            # Compress history at this clean boundary (all tool exchanges settled)
+            self.conversation_history = await self._summarize_history(
+                self.conversation_history
+            )
             
             return response
             
@@ -340,6 +355,44 @@ class CodingAgent:
 
         answer = input("Allow this operation? [y/N] ").strip().lower()
         return answer in ("y", "yes")
+    
+    def _format_transcript(self, messages):
+        """Turn message dicts into a readable transcript for the summarizer."""
+        return "\n".join(
+            f"{m['role']}: {m['content'] if isinstance(m['content'], str) else str(m['content'])}"
+            for m in messages
+        )
+    
+    async def _summarize_history(self, history):
+        """
+        Compress conversation history when it grows past the threshold.
+        Old turns are summarized by the LLM; recent turns are kept verbatim.
+        Returns the (possibly compressed) history.
+        """
+        # Trigger: only compress if we're over the threshold.
+        if len(history) <= self.summary_threshold:
+            return history
+
+        # Split: old gets summarized, recent stays verbatim.
+        old = history[:-self.keep_recent]
+        recent = history[-self.keep_recent:]
+
+        # Summarize the old chunk via a standalone LLM call.
+        prompt = SUMMARY_PROMPT.format(transcript=self._format_transcript(old))
+        content_blocks, error = await self.llm.call([{"role": "user", "content": prompt}])
+        if error:
+            # If summarization fails, keep the original history — never lose data.
+            return history
+        summary_text = " ".join(
+            b.text for b in content_blocks if getattr(b, "type", None) == "text"
+        )
+
+        # Rebuild: one summary message + the verbatim recent turns.
+        summary_message = {
+            "role": "user",
+            "content": f"[Earlier conversation summary: {summary_text}]",
+        }
+        return [summary_message] + recent
     
     def clear_history(self):
         """Clear conversation history."""
