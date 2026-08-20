@@ -8,6 +8,7 @@ sandboxed executor. Blocked code never runs.
 from src.tools.base import BaseTool
 from src.execution.validator import CodeValidator
 from src.execution.executor import CodeExecutor
+from src.execution.docker_executor import DockerExecutor
 
 
 class CodeExecutionTool(BaseTool):
@@ -23,7 +24,14 @@ class CodeExecutionTool(BaseTool):
 
     def __init__(self, timeout=5, cpu_seconds=2, memory_mb=100):
         self.validator = CodeValidator()
-        self.executor = CodeExecutor(timeout=timeout, cpu_seconds=cpu_seconds, memory_mb=memory_mb)
+        # Prefer Docker isolation; fall back to the subprocess sandbox if Docker
+        # isn't available so the tool still works on machines without it.
+        if DockerExecutor.is_available():
+            self.executor = DockerExecutor(timeout=timeout + 5, memory_mb=memory_mb)
+            self.engine = "docker"
+        else:
+            self.executor = CodeExecutor(timeout=timeout, cpu_seconds=cpu_seconds, memory_mb=memory_mb)
+            self.engine = "subprocess"
 
     async def execute(self, code):
         # Gate 1: validate. Blocked code never reaches the executor.

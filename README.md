@@ -49,6 +49,7 @@ model always sees its own prior actions.
 | Code execution tool | `src/tools/code_exec.py` | Validate-then-execute gate |
 | Validator | `src/execution/validator.py` | AST-based static check (blocks dangerous imports) |
 | Executor | `src/execution/executor.py` | Sandboxed subprocess with timeout + resource caps |
+| Docker executor | `src/execution/docker_executor.py` | Container-isolated execution (preferred when Docker is available) |
 | Context | `src/utils/context.py` | Conversation-history persistence |
 | Snapshots | `src/utils/snapshots.py` | File snapshot + rollback |
 | CLI | `src/cli.py` | Interactive prompt and slash-commands |
@@ -60,6 +61,7 @@ model always sees its own prior actions.
 
 - Python 3.10+
 - An Anthropic API key
+- Docker (optional) — for container-isolated code execution; without it, the agent falls back to a subprocess sandbox.
 
 ### Setup
 
@@ -123,9 +125,14 @@ containment:
    - a **memory cap** (`RLIMIT_AS`) where the OS supports it.
 
 The validator is a first filter, not a security boundary — it's a blocklist, and
-blocklists are inherently incomplete. The real containment is the subprocess
-isolation and resource limits: the design favors *bounding what code can do*
-over trying to enumerate everything dangerous it might try.
+blocklists are inherently incomplete. The real containment is the executor.
+
+When Docker is available, code runs inside a container (`--network none`, a hard
+memory cap, and an isolated filesystem), which provides genuine isolation. When
+Docker is not present, the tool falls back to the subprocess sandbox
+(timeout + resource limits) so it still works everywhere. The design favors
+*bounding what code can do* over trying to enumerate everything dangerous it
+might try.
 
 ## Known limitations
 
@@ -137,14 +144,17 @@ rather than hidden:
   syntax checks. This has not been tested on large files or many files, where
   full-file regeneration gets riskier and more token-expensive; a line-level
   edit tool would be the next step for scale.
-- **Not a hardened sandbox.** The AST validator can be evaded (e.g. `__import__`,
-  `eval`, `importlib`). Genuinely safe execution of untrusted code needs
-  OS-level isolation (containers / seccomp), which this project does not
-  implement.
-- **Memory capping is platform-dependent.** `RLIMIT_AS` works on Linux but is
-  **refused by macOS** (`ValueError: current limit exceeds maximum limit`), so on
-  macOS the memory cap is silently skipped — the timeout and CPU cap still apply.
-  This was found by testing per-platform, not assumed.
+- **Isolation depends on Docker being present.** With Docker, code runs in a
+  container with no network and an enforced memory cap — genuine isolation. The
+  AST validator alone can be evaded (`__import__`, `eval`, `importlib`), so on
+  machines *without* Docker the fallback subprocess sandbox is defense-in-depth,
+  not a hard boundary. Container hardening (seccomp, read-only rootfs, dropped
+  capabilities) would be the next step.
+- **Subprocess memory capping is platform-dependent.** In the *subprocess*
+  fallback, `RLIMIT_AS` works on Linux but is refused by macOS, so the memory cap
+  is skipped there (timeout and CPU cap still apply). The Docker path does not
+  have this problem — its `--memory` cap is enforced on all platforms. Found by
+  testing per-platform, not assumed.
 - **No path sandboxing.** Tools operate within the working directory by
   convention but do not hard-enforce a filesystem boundary.
 - **Eager provider construction.** The agent builds its LLM provider in
@@ -203,6 +213,7 @@ All phases are complete. Listed in the order they were built in this project:
 - [x] **Phase 8 — Git integration:** status / diff / commit as separate, single-purpose agent tools
 - [x] **Phase 9 — Context management:** LLM summarization of older turns past a length threshold, keeping recent turns verbatim
 - [x] **Phase 10 — Multi-file refactoring:** composing search + read + write to rename a symbol everywhere it's used
+- [x] **Phase 11 — Container isolation:** Docker-based code execution (no network, enforced memory cap) with graceful fallback to the subprocess sandbox
 
 Possible future directions are noted in **Known Limitations**.
 
