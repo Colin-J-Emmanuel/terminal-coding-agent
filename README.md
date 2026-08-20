@@ -21,6 +21,7 @@ around the ReAct (Reason–Act–Observe) loop and talks to Anthropic's Claude A
 - **Code search** — grep-style content search across the working directory (`search_code`).
 - **Git tools** — read repo status and diffs, and stage-and-commit with a message (`git_status`, `git_diff`, `git_commit`); commits require confirmation.
 - **Context management** — when history grows past a threshold, older turns are summarized by the LLM while recent turns are kept verbatim, keeping the conversation within budget.
+- **Multi-file refactoring** — the agent composes search + read + write to rename a symbol across files, preserving syntax; verified on small multi-file cases (see limitations for scale caveats).
 - **Sandboxed code execution** — runs Python in an isolated subprocess with a timeout and, where the OS allows, CPU/memory caps (`execute_code`), gated by a static validator that runs first.
 - **Snapshots** — file snapshots are taken before destructive operations, with rollback via a CLI command.
 
@@ -131,6 +132,11 @@ over trying to enumerate everything dangerous it might try.
 This is a learning project, and these boundaries are intentional and documented
 rather than hidden:
 
+- **Refactoring is verified only at small scale.** Multi-file rename works by
+  rewriting whole files from the model's output, verified on a 3-file case with
+  syntax checks. This has not been tested on large files or many files, where
+  full-file regeneration gets riskier and more token-expensive; a line-level
+  edit tool would be the next step for scale.
 - **Not a hardened sandbox.** The AST validator can be evaded (e.g. `__import__`,
   `eval`, `importlib`). Genuinely safe execution of untrusted code needs
   OS-level isolation (containers / seccomp), which this project does not
@@ -185,21 +191,20 @@ dispatch, error surfacing) rather than just that code ran.
 
 ## Roadmap
 
-Built so far:
+All phases are complete. Listed in the order they were built in this project:
 
-- [x] Natural-language ReAct loop with tool calling
-- [x] File operations (read / write)
-- [x] Code search
-- [x] Sandboxed code execution with AST validation and resource limits
-- [x] Snapshots and rollback
-- [x] Test suite with a mocked LLM
-- [x] Enforced confirmation prompts for destructive operations (default-deny)
-- [x] Git integration (status / diff / commit as agent tools)
-- [x] Context management: LLM summarization of old turns at a length threshold
+- [x] **Phase 1 — ReAct loop & tool system:** the Reason–Act–Observe loop plus the `BaseTool` / `ToolRegistry` contract and name→tool dispatch
+- [x] **Phase 2 — File operations:** read and write files (`read_file`, `write_file`)
+- [x] **Phase 3 — Snapshots & rollback:** file snapshots taken before destructive operations, with restore by id
+- [x] **Phase 4 — Sandboxed code execution:** AST-based static validation plus a subprocess sandbox with a timeout and per-platform resource limits
+- [x] **Phase 5 — Code search:** grep-style content search across the working directory
+- [x] **Phase 6 — Test suite:** pytest coverage for the executor, tools, and the agent loop, with the LLM mocked so tests run offline
+- [x] **Phase 7 — Confirmation gate:** default-deny confirmation prompts for destructive operations
+- [x] **Phase 8 — Git integration:** status / diff / commit as separate, single-purpose agent tools
+- [x] **Phase 9 — Context management:** LLM summarization of older turns past a length threshold, keeping recent turns verbatim
+- [x] **Phase 10 — Multi-file refactoring:** composing search + read + write to rename a symbol everywhere it's used
 
-Actively working toward:
-
-- [ ] Multi-file refactoring
+Possible future directions are noted in **Known Limitations**.
 
 ## Notable engineering problems solved
 

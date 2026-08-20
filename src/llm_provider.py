@@ -36,7 +36,7 @@ class ClaudeProvider:
         # Get model configuration
         self.model = config.get("llm.model", "claude-sonnet-4-20250514")
         self.max_tokens = config.get("llm.max_tokens", 4000)
-        self.temperature = config.get("llm.temperature", 0.7)
+        self.temperature = config.get("llm.temperature", None)
         self.timeout = config.get("llm.timeout", 60)
         
         # System prompt
@@ -68,17 +68,34 @@ class ClaudeProvider:
             #             input_schema=tool["input_schema"]
             #         ))
             
-            # Make API call
-            response = self.client.messages.create(
-                model=self.model,
-                max_tokens=self.max_tokens,
-                temperature=self.temperature,
-                system=self.system_prompt,
-                messages=messages,
-                tools=tool_params if tool_params else anthropic.NOT_GIVEN,
-                timeout=self.timeout
-            )
+            # # Make API call
+            # response = self.client.messages.create(
+            #     model=self.model,
+            #     max_tokens=self.max_tokens,
+            #     temperature=self.temperature,
+            #     system=self.system_prompt,
+            #     messages=messages,
+            #     tools=tool_params if tool_params else anthropic.NOT_GIVEN,
+            #     timeout=self.timeout
+            # )
             
+            # return response.content, None
+
+            # Build API arguments; only include temperature if it's configured,
+            # since some models (e.g. Sonnet 5) reject the parameter entirely.
+            api_kwargs = {
+                "model": self.model,
+                "max_tokens": self.max_tokens,
+                "system": self.system_prompt,
+                "messages": messages,
+                "tools": tool_params if tool_params else anthropic.NOT_GIVEN,
+                "timeout": self.timeout,
+            }
+            if self.temperature is not None:
+                api_kwargs["temperature"] = self.temperature
+
+            response = self.client.messages.create(**api_kwargs)
+
             return response.content, None
             
         except anthropic.APITimeoutError as e:
