@@ -20,6 +20,7 @@ around the ReAct (Reason–Act–Observe) loop and talks to Anthropic's Claude A
 - **File tools** — create/overwrite files (`write_file`) and read them back (`read_file`).
 - **Code search** — grep-style content search across the working directory (`search_code`).
 - **Git tools** — read repo status and diffs, and stage-and-commit with a message (`git_status`, `git_diff`, `git_commit`); commits require confirmation.
+- **Context management** — when history grows past a threshold, older turns are summarized by the LLM while recent turns are kept verbatim, keeping the conversation within budget.
 - **Sandboxed code execution** — runs Python in an isolated subprocess with a timeout and, where the OS allows, CPU/memory caps (`execute_code`), gated by a static validator that runs first.
 - **Snapshots** — file snapshots are taken before destructive operations, with rollback via a CLI command.
 
@@ -194,10 +195,10 @@ Built so far:
 - [x] Test suite with a mocked LLM
 - [x] Enforced confirmation prompts for destructive operations (default-deny)
 - [x] Git integration (status / diff / commit as agent tools)
+- [x] Context management: LLM summarization of old turns at a length threshold
 
 Actively working toward:
 
-- [ ] Advanced context management for large codebases
 - [ ] Multi-file refactoring
 
 ## Notable engineering problems solved
