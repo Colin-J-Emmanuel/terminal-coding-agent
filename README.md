@@ -235,9 +235,3 @@ A few of the more interesting things this project surfaced:
 
 - Inspired by Claude Code, OpenAI Codex CLI, and similar coding agents.
 - Built on Anthropic's Claude API.
-
-## Contact
-
-Colin J. Emmanuel — c.j.emmanuel@columbia.edu
-
-Project: https://github.com/Colin-J-Emmanuel/terminal-coding-agent
