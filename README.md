@@ -195,9 +195,14 @@ handling), and the agent loop itself — the LLM is **mocked**, so tests run off
 with no API key or network and assert real behavior (loop termination, tool
 dispatch, error surfacing) rather than just that code ran.
 
-Every push and pull request runs this suite in GitHub Actions across Python
-3.10, 3.11, and 3.12, alongside a flake8 lint pass — see
-[`.github/workflows/ci.yml`](.github/workflows/ci.yml).
+### Continuous integration
+
+A GitHub Actions pipeline runs on every push and pull request to `main`. Each run
+installs the package, executes a flake8 lint pass, and runs the full pytest suite
+across a build matrix of Python 3.10, 3.11, and 3.12. The build fails on any
+failing test, syntax error, or undefined name, so the **CI badge** at the top of
+this README always reflects the current state of `main`. The workflow is defined
+in [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
 
 ### Adding a tool
 
@@ -240,8 +245,4 @@ A few of the more interesting things this project surfaced:
 ## Acknowledgments
 
 - Inspired by Claude Code, OpenAI Codex CLI, and similar coding agents.
-<<<<<<< HEAD
 - Built on Anthropic's Claude API.
-=======
-- Built on Anthropic's Claude API.
->>>>>>> e20f89b40d87e94ef63336d1a93ecad09e6550a3
