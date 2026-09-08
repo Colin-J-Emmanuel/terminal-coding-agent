@@ -1,5 +1,7 @@
 # Terminal-Based Coding Agent
 
+[![CI](https://github.com/Colin-J-Emmanuel/terminal-coding-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/Colin-J-Emmanuel/terminal-coding-agent/actions/workflows/ci.yml)
+
 A terminal coding agent that takes natural-language instructions, reasons about
 them, and acts on your filesystem through a set of tools — writing and reading
 files, searching a codebase, and running code inside a sandbox. It's built
@@ -187,11 +189,15 @@ terminal-coding-agent/
 pytest tests/
 ```
 
-The suite (11 tests) covers the executor (success, crash, timeout, stream
+The suite (15 tests) covers the executor (success, crash, timeout, stream
 separation), the tools (read/write round-trip, missing-file handling, unknown-tool
 handling), and the agent loop itself — the LLM is **mocked**, so tests run offline
 with no API key or network and assert real behavior (loop termination, tool
 dispatch, error surfacing) rather than just that code ran.
+
+Every push and pull request runs this suite in GitHub Actions across Python
+3.10, 3.11, and 3.12, alongside a flake8 lint pass — see
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml).
 
 ### Adding a tool
 
@@ -235,9 +241,3 @@ A few of the more interesting things this project surfaced:
 
 - Inspired by Claude Code, OpenAI Codex CLI, and similar coding agents.
 - Built on Anthropic's Claude API.
-
-## Contact
-
-Colin J. Emmanuel — c.j.emmanuel@columbia.edu
-
-Project: https://github.com/Colin-J-Emmanuel/terminal-coding-agent
