@@ -240,4 +240,8 @@ A few of the more interesting things this project surfaced:
 ## Acknowledgments
 
 - Inspired by Claude Code, OpenAI Codex CLI, and similar coding agents.
+<<<<<<< HEAD
 - Built on Anthropic's Claude API.
+=======
+- Built on Anthropic's Claude API.
+>>>>>>> e20f89b40d87e94ef63336d1a93ecad09e6550a3
