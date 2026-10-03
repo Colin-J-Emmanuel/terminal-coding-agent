@@ -270,6 +270,6 @@ A few of the more interesting things this project surfaced:
 
 ## Contact
 
-Colin J. Emmanuel — c.j.emmanuel@columbia.edu
+Colin J. Emmanuel — https://www.linkedin.com/in/colin-j-emmanuel/
 
 Project: https://github.com/Colin-J-Emmanuel/terminal-coding-agent
