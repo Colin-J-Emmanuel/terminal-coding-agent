@@ -64,6 +64,8 @@ flowchart LR
     F -->|stdout / stderr| O
 ```
 
+![Architecture diagram: user request flows through the ReAct loop, guardrails, and tools, with code execution passing an AST validator into a Docker sandbox or subprocess fallback](docs/architecture.png)
+
 The loop maintains a single, growing message list: each turn the assistant's
 tool call and the tool's result are appended to the same conversation, so the
 model always sees its own prior actions.
@@ -268,6 +270,6 @@ A few of the more interesting things this project surfaced:
 
 ## Contact
 
-Colin J. Emmanuel — https://www.linkedin.com/in/colin-j-emmanuel/
+Colin J. Emmanuel — c.j.emmanuel@columbia.edu
 
 Project: https://github.com/Colin-J-Emmanuel/terminal-coding-agent
