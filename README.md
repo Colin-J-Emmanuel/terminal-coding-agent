@@ -1,7 +1,5 @@
 # Terminal-Based Coding Agent
 
-[![CI](https://github.com/Colin-J-Emmanuel/terminal-coding-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/Colin-J-Emmanuel/terminal-coding-agent/actions/workflows/ci.yml)
-
 A terminal coding agent that takes natural-language instructions, reasons about
 them, and acts on your filesystem through a set of tools — writing and reading
 files, searching a codebase, and running code inside a sandbox. It's built
@@ -31,8 +29,39 @@ around the ReAct (Reason–Act–Observe) loop and talks to Anthropic's Claude A
 
 The agent follows the ReAct (Reason–Act–Observe) pattern:
 
-```
-User input → Reason (LLM) → Act (tool) → Observe (result) → … → Response
+```mermaid
+flowchart LR
+    U["User<br/>natural-language request via CLI"] --> R
+
+    subgraph Agent["Agent · ReAct loop"]
+        R["REASON<br/>Claude API decides the next tool call"] --> A["ACT<br/>ToolRegistry dispatches by name"]
+        A --> O["OBSERVE<br/>result appended to the conversation"]
+        O -->|loop until done| R
+        C["Context management<br/>old turns summarized, recent kept verbatim"]
+    end
+
+    A --> G
+
+    subgraph Guardrails
+        G["Confirm [y/N] (default-deny)<br/>Snapshot before writes · /rollback"]
+    end
+
+    G --> T
+
+    subgraph Tools
+        T{{"Tool dispatch"}}
+        T --> X["execute_code"]
+        T --> W["write_file / read_file"]
+        T --> S["search_code"]
+        T --> GT["git_status / git_diff / git_commit"]
+    end
+
+    X --> V["AST validator<br/>blocks os, subprocess, socket …"]
+    V -->|safe| D["Docker sandbox<br/>--network none · --memory 100m<br/>timeout · isolated filesystem"]
+    V -.->|blocked| O
+    D -.->|no Docker?| F["Subprocess fallback<br/>timeout + CPU limit"]
+    D -->|stdout / stderr| O
+    F -->|stdout / stderr| O
 ```
 
 The loop maintains a single, growing message list: each turn the assistant's
@@ -63,7 +92,6 @@ model always sees its own prior actions.
 
 - Python 3.10+
 - An Anthropic API key
-- Docker (optional) — for container-isolated code execution; without it, the agent falls back to a subprocess sandbox.
 
 ### Setup
 
@@ -189,20 +217,11 @@ terminal-coding-agent/
 pytest tests/
 ```
 
-The suite (15 tests) covers the executor (success, crash, timeout, stream
+The suite (11 tests) covers the executor (success, crash, timeout, stream
 separation), the tools (read/write round-trip, missing-file handling, unknown-tool
 handling), and the agent loop itself — the LLM is **mocked**, so tests run offline
 with no API key or network and assert real behavior (loop termination, tool
 dispatch, error surfacing) rather than just that code ran.
-
-### Continuous integration
-
-A GitHub Actions pipeline runs on every push and pull request to `main`. Each run
-installs the package, executes a flake8 lint pass, and runs the full pytest suite
-across a build matrix of Python 3.10, 3.11, and 3.12. The build fails on any
-failing test, syntax error, or undefined name, so the **CI badge** at the top of
-this README always reflects the current state of `main`. The workflow is defined
-in [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
 
 ### Adding a tool
 
@@ -246,3 +265,9 @@ A few of the more interesting things this project surfaced:
 
 - Inspired by Claude Code, OpenAI Codex CLI, and similar coding agents.
 - Built on Anthropic's Claude API.
+
+## Contact
+
+Colin J. Emmanuel — https://www.linkedin.com/in/colin-j-emmanuel/
+
+Project: https://github.com/Colin-J-Emmanuel/terminal-coding-agent
