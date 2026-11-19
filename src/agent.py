@@ -59,8 +59,8 @@ class CodingAgent:
         self.iteration_count = 0
         
     def _register_tools(self):
-        self.tools.register(WriteFileTool())
-        self.tools.register(ReadFileTool())
+        self.tools.register(WriteFileTool(self.working_directory))
+        self.tools.register(ReadFileTool(self.working_directory))
         self.tools.register(CodeExecutionTool())
         self.tools.register(SearchTool(self.working_directory))
         self.tools.register(GitStatusTool(self.working_directory))
